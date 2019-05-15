@@ -9,29 +9,14 @@ upperLimit = q[3] + 1.5 * i
 lowerLimit = q[1] - 1.5 * i
 tallPlayers = playersData[playersData$height > upperLimit, ]
 shortPlayers = playersData[playersData$height < lowerLimit, ]
-player = player_data[player_data$position == "C" & asInch(as.character(player_data$height)) > 84, ]
-as = asInch(as.character(player_data$height))
-chars = as.character(player_data$height)
-l = asInch(chars)
+guards = player_data[player_data$position == "G" , ]
 
-h = levels(player$position)
-a = player_data$height[1]
-tokens <- as.numeric(unlist(strsplit(as.character(a), "-")))
+fguards = player_data[player_data$position == "F-G" & fromFactorToInch(player_data$height) > 72, ]
 
-
-getVectorInch <- function(vec) {
-  
-}
-
-asInch <- function(height) {
-  if (is.vector(height)) {
-    result <- numeric()
-    for (i in 1:length(height)) {
-      result <- c(result, asInch(height[i]))
-    } 
-    return(result)
-  }#
-  tokens <- as.numeric(unlist(strsplit(height, "-")))
+fromFactorToInch <- Vectorize(function(height) {
+  tokens <- as.numeric(unlist(strsplit(as.character(height), "-")))
   return(12 * tokens[1] + tokens[2])
-}
-asInch("7-0")
+})
+
+
+t.test(fromFactorToInch(guards$height), fromFactorToInch(fguards$height), alt = "two.sided", var.equal = TRUE)
