@@ -1,0 +1,131 @@
+---
+title: "Statistika NBA igrača od 1950. godine"
+subtitle: "Preko 3000 igrača kroz 67 sezona i preko 50 varijabli po igraču"
+author: "Ante Gazibarić, Antun Magdić, Ante Žužul"
+date: "21.5.2019."
+output: html_document
+---
+
+```{r, echo=FALSE}
+source("util.r")
+
+players <- read.csv(file="data/players.csv", header=TRUE, sep=",")
+seasonsStats <- read.csv(file="data/seasons_stats.csv", header=TRUE, sep=",")
+
+players <- preparePlayerData(players)
+seasonsStats <- prepareSeasonsStatsData(seasonsStats, players)
+ss <- seasonsStats
+pl <- players
+
+names <- unique(players$name)
+counts <- rep(0, length(names))
+sameNamePlayers <- data.frame(matrix(ncol=length(names(players)), nrow=0))
+names(sameNamePlayers) <- names(players)
+for (i in 1:length(names)) {
+  counts[i] <- length(players$name[players$name == names[i]])
+  if (counts[i] > 1) {
+    if (names[i] %in% sameNamePlayers$name) {
+      next
+    }
+    sameNamePlayers <- rbind(sameNamePlayers, players[players$name == names[i], ])
+  }
+}
+
+df = data.frame(matrix(ncol=length(names(ss)), nrow=0))
+names(df) <- names(ss)
+for (name in unique(sameNamePlayers$name)) {
+  nss <- ss[ss$Player == name, ]
+  maxCurrent <- nss[nss$PTS / nss$G == max(nss$PTS / nss$G, na.rm=TRUE), ]
+  df <- rbind(df, maxCurrent)
+}
+df$ppg <- df$PTS / df$G
+df[ , c("Player", "G", "Year", "ppg")]
+
+ss[ss$Player == "", ]
+newNames <- vector()
+for (name in seasonsStats$Player) {
+  if (grepl("\\*", name)) {
+    name <- substr(name, 1, nchar(name)-1)
+  }
+  if (!(name %in% players$name)) {
+    newNames <- c(newNames, name)
+  }
+}
+unique(newNames)
+
+sameNamePlayers[ , c("name", "birth_date")]
+
+#barplot(prop.table(table(players$position)))
+
+#filteredPlayers <- seasonsStats[seasonsStats$Year > 2005 & !is.null(seasonsStats$X3P.),]
+
+
+age <- min(seasonsStats$Age, na.rm=TRUE):max(seasonsStats$Age, na.rm=TRUE)
+values <- rep(0, length(ages))
+for (age in ages) {
+  values[i] <- length(seasonsStats[seasonsStats$Age == age, c("Age")])
+}
+barplot(setNames(values, ages))
+
+plot(seasonsStats$X3P., seasonsStats$X3PA, cex=0.1, xlab="3P%", ylab="3PA")
+
+plot(seasonsStats$X3P.[seasonsStats$X3PA > 100], seasonsStats$X3PA[seasonsStats$X3PA > 100], cex=0.1, xlab="3P%", ylab="3PA")
+
+years <- 1979:max(ss$Year, na.rm=TRUE)
+values <- rep(0, length(years))
+for (i in 1:length(years)) {
+  values[i] <- sum(ss$X3PA[ss$Year == years[i] & !is.na(ss$X3PA)])
+}
+
+lm.r <- lm(values ~ years)
+
+plot(years, values, cex=0.5, xlab="Year", ylab="3PA")
+abline(lm.r, col="red")
+# barplot(setNames(values, years))
+
+qqnorm(rstandard(lm.r))
+qqline(rstandard(lm.r))
+
+#ss[which(ss$FTA == max(ss$FTA[!is.na(ss$FTA)])), c("Player", "Year", "X3PA", "X3P")]
+plot(seasonsStats$FT., seasonsStats$FTA, cex=0.1, xlab="FT%", ylab="FTA")
+#max(seasonsStats$FTA, na.rm=TRUE)
+
+#threePercentages <- ss[ss$FTA > 50 & ss$X3PA > 50, c("X3P.")]
+#freeThrowPercentages <- ss[ss$FTA > 50 & ss$X3PA > 50, c("FT.")]
+#lm.r <- lm(freeThrowPercentages ~ threePercentages)
+#plot(threePercentages, freeThrowPercentages, cex=0.1, xlab="3P%", ylab="FT%")
+#abline(lm.r, col="red")
+
+```
+
+```{r}
+merged <- merge(ss, pl, by.x="Player", by.y="name")
+merged <- merged[!(merged$Player %in% sameNamePlayers$name), ]
+merged <- merged[!is.na(merged$height) & !is.na(merged$X3PA), ]
+names <- unique(merged$Player)
+heights <- rep(0, length(names))
+threes <- rep(0, length(names))
+for (i in 1:length(names)) {
+  name <- names[i]
+  heights[i] <- min(merged[merged$Player == name, c("height")])
+  threes[i] <- sum(merged[merged$Player == name, c("X3PA")])
+}
+
+uniqueHeights <- unique(heights)
+uniqueThrees <- rep(0, length(uniqueHeights))
+for (i in 1:length(uniqueHeights)) {
+  height <- heights[i]
+  nPlayers <- length(heights[heights == height])
+  totalThrees <- sum(threes[heights == height])
+  uniqueThrees[i] <- totalThrees / nPlayers
+}
+
+plot(uniqueHeights, uniqueThrees, cex=0.5)
+
+```
+
+
+
+
+
+
