@@ -125,7 +125,12 @@ plot(uniqueHeights, uniqueThrees, cex=0.5)
 ```
 
 
-
+```{r}
+seasons <- read.csv(file="data/seasons.csv", header=TRUE, sep=",")
+seasons$Tm <- as.character(seasons$Tm)
+seasons$Tm <- removeAsterisk(seasons$Tm)
+seasons
+```
 
 
 
