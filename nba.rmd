@@ -10,12 +10,51 @@ output: html_document
 source("util.r")
 
 players <- read.csv(file="data/players.csv", header=TRUE, sep=",")
+players2 <- read.csv(file="data/players2.csv", header=TRUE, sep=",")
 seasonsStats <- read.csv(file="data/seasons_stats.csv", header=TRUE, sep=",")
+europeanCountries <- read.csv(file="data/Countries-Europe.csv", header=TRUE, sep=",")
+seasons <- read.csv(file="data/seasons.csv", header=TRUE, sep=",")
+
+seasons$Tm <- as.character(seasons$Tm)
+seasons$Tm <- removeAsterisk(seasons$Tm)
+seasons
 
 players <- preparePlayerData(players)
 seasonsStats <- prepareSeasonsStatsData(seasonsStats, players)
 ss <- seasonsStats
 pl <- players
+
+# Tallest and smallest players
+q = quantile(players$height, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+i = IQR(players$height, na.rm = TRUE)
+upperLimit = q[3] + 1.5 * i
+lowerLimit = q[1] - 1.5 * i
+tallPlayers = players[players$height > upperLimit, ]
+shortPlayers = players[players$height < lowerLimit, ]
+
+# Compare guards ("G") and forward guards ("F-G")
+guards = player_data[players$position == "G" , ]
+fguards = player_data[players$position == "F-G" | players$position == "G-F", ]
+fromFactorToInch <- Vectorize(function(height) {
+  tokens <- as.numeric(unlist(strsplit(as.character(height), "-")))
+  return(12 * tokens[1] + tokens[2])
+})
+
+t.test(fromFactorToInch(guards$height), fromFactorToInch(fguards$height), alt = "two.sided", var.equal = TRUE)
+
+# Statistics between European players and other
+europeans = players2[players2$birth_state %in% europeanCountries$name, ]
+other = setdiff(players2, europeans)
+t.test(europeans$height, other$height, alt = "two.sided")
+
+europeanStats = seasonsStats[seasonsStats$Player %in% europeans$Player, ]
+otherStats = seasonsStats[seasonsStats$Player %in% other$Player, ]
+
+playerFTA = c(sum(europeanStats$FTA), sum(otherStats$FTA))
+playerFT = c(sum(europeanStats$FT), sum(otherStats$FT))
+
+prop.test(playerFT, playerFTA, alternative="t", correct="FALSE")
+
 
 names <- unique(players$name)
 counts <- rep(0, length(names))
