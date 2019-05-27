@@ -33,14 +33,10 @@ tallPlayers = players[players$height > upperLimit, ]
 shortPlayers = players[players$height < lowerLimit, ]
 
 # Compare guards ("G") and forward guards ("F-G")
-guards = player_data[players$position == "G" , ]
-fguards = player_data[players$position == "F-G" | players$position == "G-F", ]
-fromFactorToInch <- Vectorize(function(height) {
-  tokens <- as.numeric(unlist(strsplit(as.character(height), "-")))
-  return(12 * tokens[1] + tokens[2])
-})
+guards = players[players$position == "G" , ]
+fguards = players[players$position == "F-G" | players$position == "G-F", ]
 
-t.test(fromFactorToInch(guards$height), fromFactorToInch(fguards$height), alt = "two.sided", var.equal = TRUE)
+t.test(guards$height, fguards$height, alt = "less", var.equal = TRUE)
 
 # Statistics between European players and other
 europeans = players2[players2$birth_state %in% europeanCountries$name, ]
@@ -54,7 +50,6 @@ playerFTA = c(sum(europeanStats$FTA), sum(otherStats$FTA))
 playerFT = c(sum(europeanStats$FT), sum(otherStats$FT))
 
 prop.test(playerFT, playerFTA, alternative="t", correct="FALSE")
-
 
 names <- unique(players$name)
 counts <- rep(0, length(names))
@@ -140,14 +135,14 @@ plot(seasonsStats$FT., seasonsStats$FTA, cex=0.1, xlab="FT%", ylab="FTA")
 ```{r}
 merged <- merge(ss, pl, by.x="Player", by.y="name")
 merged <- merged[!(merged$Player %in% sameNamePlayers$name), ]
-merged <- merged[!is.na(merged$height) & !is.na(merged$X3PA), ]
+merged <- merged[!is.na(merged$height) & !is.na(merged$FT.), ]
 names <- unique(merged$Player)
 heights <- rep(0, length(names))
 threes <- rep(0, length(names))
 for (i in 1:length(names)) {
   name <- names[i]
   heights[i] <- min(merged[merged$Player == name, c("height")])
-  threes[i] <- sum(merged[merged$Player == name, c("X3PA")])
+  threes[i] <- sum(merged[merged$Player == name, c("FT")])
 }
 
 uniqueHeights <- unique(heights)
