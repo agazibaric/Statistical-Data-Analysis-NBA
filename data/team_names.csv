@@ -1,68 +1,69 @@
-FTW,Fort Wayne Pistons
-INO,Indianapolis Olympians
-CHS,Chicago Stags
-DNN,Denver Nuggets
-NYK,New York Knicks
-TRI,Tri-Cities Blackhawks
-AND,Anderson Packers
-PHW,Philadelphia Warriors
-WAT,Waterloo Hawks
-SHE,Sheboygan Redskins
-ROC,Rochester Royals
-BLB,Baltimore Bullets
-MNL,Minneapolis Lakers
-SYR,Syracuse Nationals
-WSC,Washington Capitols
-BOS,Boston Celtics
-STB,St. Louis Bombers
-MLH,Milwaukee Hawks
-STL,St. Louis Hawks
-DET,Detroit Pistons
-CIN,Cincinnati Royals
-LAL,Los Angeles Lakers
-CHP,Chicago Packers
-SFW,San Francisco Warriors
-CHZ,Chicago Zephyrs
-BAL,Baltimore Bullets
-PHI,Philadelphia 76ers
-CHI,Chicago Bulls
-SDR,San Diego Rockets
-SEA,Seattle SuperSonics
-MIL,Milwaukee Bucks
-ATL,Atlanta Hawks
-PHO,Phoenix Suns
-POR,Portland Trail Blazers
-CLE,Cleveland Cavaliers
-BUF,Buffalo Braves
-HOU,Houston Rockets
-GSW,Golden State Warriors
-KCO,Kansas City-Omaha Kings
-CAP,Capital Bullets
-NOJ,New Orleans Jazz
-WSB,Washington Bullets
-KCK,Kansas City Kings
-IND,Indiana Pacers
-NYN,New York Nets
-DEN,Denver Nuggets
-SAS,San Antonio Spurs
-NJN,New Jersey Nets
-SDC,San Diego Clippers
-UTA,Utah Jazz
-DAL,Dallas Mavericks
-LAC,Los Angeles Clippers
-SAC,Sacramento Kings
-CHH,Charlotte Hornets
-MIA,Miami Heat
-ORL,Orlando Magic
-MIN,Minnesota Timberwolves
-VAN,Vancouver Grizzlies
-TOR,Toronto Raptors
-WAS,Washington Wizards
-MEM,Memphis Grizzlies
-NOH,New Orleans Hornets
-CHA,Charlotte Bobcats
-NOK,New Orleans/Oklahoma City Hornets
-OKC,Oklahoma City Thunder
-BRK,Brooklyn Nets
-NOP,New Orleans Pelicans
-CHO,Charlotte Hornets
+Abbr,Name,Conf
+FTW,Fort Wayne Pistons,W
+INO,Indianapolis Olympians,W
+CHS,Chicago Stags,W
+DNN,Denver Nuggets,W
+NYK,New York Knicks,E
+TRI,Tri-Cities Blackhawks,W
+AND,Anderson Packers,W
+PHW,Philadelphia Warriors,E
+WAT,Waterloo Hawks,W
+SHE,Sheboygan Redskins,W
+ROC,Rochester Royals,W
+BLB,Baltimore Bullets,E
+MNL,Minneapolis Lakers,W
+SYR,Syracuse Nationals,E
+WSC,Washington Capitols,E
+BOS,Boston Celtics,E
+STB,St. Louis Bombers,W
+MLH,Milwaukee Hawks,E
+STL,St. Louis Hawks,W
+DET,Detroit Pistons,E
+CIN,Cincinnati Royals,E
+LAL,Los Angeles Lakers,W
+CHP,Chicago Packers,E
+SFW,San Francisco Warriors,W
+CHZ,Chicago Zephyrs,E
+BAL,Baltimore Bullets,E
+PHI,Philadelphia 76ers,E
+CHI,Chicago Bulls,E
+SDR,San Diego Rockets,W
+SEA,Seattle SuperSonics,W
+MIL,Milwaukee Bucks,E
+ATL,Atlanta Hawks,E
+PHO,Phoenix Suns,W
+POR,Portland Trail Blazers,W
+CLE,Cleveland Cavaliers,E
+BUF,Buffalo Braves,E
+HOU,Houston Rockets,W
+GSW,Golden State Warriors,W
+KCO,Kansas City-Omaha Kings,W
+CAP,Capital Bullets,E
+NOJ,New Orleans Jazz,W
+WSB,Washington Bullets,E
+KCK,Kansas City Kings,W
+IND,Indiana Pacers,E
+NYN,New York Nets,E
+DEN,Denver Nuggets,W
+SAS,San Antonio Spurs,W
+NJN,New Jersey Nets,E
+SDC,San Diego Clippers,W
+UTA,Utah Jazz,W
+DAL,Dallas Mavericks,W
+LAC,Los Angeles Clippers,W
+SAC,Sacramento Kings,W
+CHH,Charlotte Hornets,E
+MIA,Miami Heat,E
+ORL,Orlando Magic,E
+MIN,Minnesota Timberwolves,W
+VAN,Vancouver Grizzlies,W
+TOR,Toronto Raptors,E
+WAS,Washington Wizards,E
+MEM,Memphis Grizzlies,W
+NOH,New Orleans Hornets,W
+CHA,Charlotte Bobcats,E
+NOK,New Orleans/Oklahoma City Hornets,W
+OKC,Oklahoma City Thunder,W
+BRK,Brooklyn Nets,E
+NOP,New Orleans Pelicans,W
+CHO,Charlotte Hornets,E

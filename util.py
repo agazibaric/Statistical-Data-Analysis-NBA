@@ -7,6 +7,14 @@ def addHallOfFame(dataframe, colName):
         dataframe.data['HOF'].append('TRUE' if hof else 'FALSE')
         if hof: dataframe.data[colName][i] = name
 
+def addPlayoff(dataframe, colName):
+    dataframe.colNames.append('PO')
+    dataframe.data['PO'] = []
+    for i, name in enumerate(dataframe.data[colName]):
+        name, po = removeAsterisk(name)
+        dataframe.data['PO'].append('TRUE' if po else 'FALSE')
+        if po: dataframe.data[colName][i] = name
+
 def asInch(feet):
     tokens = feet.split('-')
     return 12 * tokens[0] + tokens[1]

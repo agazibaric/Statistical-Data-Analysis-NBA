@@ -11,38 +11,47 @@ source("util.r")
 
 players <- read.csv(file="data/players.csv", header=TRUE, sep=",")
 players2 <- read.csv(file="data/players2.csv", header=TRUE, sep=",")
+teams <- read.csv(file="data/seasons.csv", header=TRUE, sep=",")
 seasonsStats <- read.csv(file="data/seasons_stats.csv", header=TRUE, sep=",")
 europeanCountries <- read.csv(file="data/Countries-Europe.csv", header=TRUE, sep=",")
 seasons <- read.csv(file="data/seasons.csv", header=TRUE, sep=",")
-
+teamData <- read.csv(file="data/team_names.csv", header=TRUE, sep=",")
+teamData$Name <- as.character(teamData$Name)
 seasons$Tm <- as.character(seasons$Tm)
 seasons$Tm <- removeAsterisk(seasons$Tm)
-seasons
+teams$Tm <- removeAsterisk(as.character(teams$Tm))
+
+playerSeasons <- read.csv(file="data/player_seasons.csv", header=TRUE, sep=",")
 
 players <- preparePlayerData(players)
 seasonsStats <- prepareSeasonsStatsData(seasonsStats, players)
 ss <- seasonsStats
 pl <- players
+```
 
-# Tallest and smallest players
-q = quantile(players$height, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-i = IQR(players$height, na.rm = TRUE)
-upperLimit = q[3] + 1.5 * i
-lowerLimit = q[1] - 1.5 * i
-tallPlayers = players[players$height > upperLimit, ]
-shortPlayers = players[players$height < lowerLimit, ]
-
+Poznato je kako je visina jedan od bitnih čimbenika uspjeha igrača u košarci. Najniži igrači igraju poziciju guard, a u prosjeku su visoki 189 cm. Za ostale pozicije igrači moraju biti još viši. Iz podataka se može zaključiti kako su igrači koji osim pozicije guard igraju i poziciju forward značajno viši od igrača koji igraju samo poziciju guard. Za ostale pozicije moguće je doći do sličnih zaključaka, a igrači koji igraju poziciju centar (najviši) u prosjeku su visoki čak 211 cm.
+```{r}
 # Compare guards ("G") and forward guards ("F-G")
 guards = players[players$position == "G" , ]
 fguards = players[players$position == "F-G" | players$position == "G-F", ]
+centers = players[players$position == "C", ]
+mean(guards$height)
+mean(fguards$height)
+mean(centers$height)
 
 t.test(guards$height, fguards$height, alt = "less", var.equal = TRUE)
+```
 
+U ligi NBA igra i nezanemariv broj igrača iz Europe. Iz podataka je moguće uočiti kako su Europljani u prosjeku viši od ostalih igrača. Ovdje bi bilo pogrešno zaključiti da su Europljani općenito viši od od neeuropljana. Podaci su vjerojatno takvi jer se prilikom izbora igrača koji će igrati u ligi NBA više traži od Europljana (ako su neki igrač iz Amerike i neki igrač iz Europe jednako dobri, igrač iz Amerike će vjerojatno biti izabran).
+```{r}
 # Statistics between European players and other
 europeans = players2[players2$birth_state %in% europeanCountries$name, ]
 other = setdiff(players2, europeans)
-t.test(europeans$height, other$height, alt = "two.sided")
+t.test(europeans$height, other$height, alt="two.sided")
+```
 
+Iz sljedećeg testa o proporciji moguće je vidjeti da Europljani u prosjeku bolje gađaju (i iz igre, a i slobodna bacanja). Isto kao i u prethodnom primjeru vjerojatno se ne radi o superiornosti Europljana. Razlog ovome je nešto teži standard koji Europljani moraju zadovoljiti da bi igrali u ligi NBA.
+```{r}
 europeanStats = seasonsStats[seasonsStats$Player %in% europeans$Player, ]
 otherStats = seasonsStats[seasonsStats$Player %in% other$Player, ]
 
@@ -51,6 +60,13 @@ playerFT = c(sum(europeanStats$FT), sum(otherStats$FT))
 
 prop.test(playerFT, playerFTA, alternative="t", correct="FALSE")
 
+playerFGA = c(sum(europeanStats$FGA), sum(otherStats$FGA))
+playerFG = c(sum(europeanStats$FG), sum(otherStats$FG))
+
+prop.test(playerFG, playerFGA, alternative="t", correct="FALSE")
+```
+
+```{r, echo=FALSE}
 names <- unique(players$name)
 counts <- rep(0, length(names))
 sameNamePlayers <- data.frame(matrix(ncol=length(names(players)), nrow=0))
@@ -64,99 +80,248 @@ for (i in 1:length(names)) {
     sameNamePlayers <- rbind(sameNamePlayers, players[players$name == names[i], ])
   }
 }
+```
 
-df = data.frame(matrix(ncol=length(names(ss)), nrow=0))
-names(df) <- names(ss)
-for (name in unique(sameNamePlayers$name)) {
-  nss <- ss[ss$Player == name, ]
-  maxCurrent <- nss[nss$PTS / nss$G == max(nss$PTS / nss$G, na.rm=TRUE), ]
-  df <- rbind(df, maxCurrent)
-}
-df$ppg <- df$PTS / df$G
-df[ , c("Player", "G", "Year", "ppg")]
-
-ss[ss$Player == "", ]
-newNames <- vector()
-for (name in seasonsStats$Player) {
-  if (grepl("\\*", name)) {
-    name <- substr(name, 1, nchar(name)-1)
-  }
-  if (!(name %in% players$name)) {
-    newNames <- c(newNames, name)
-  }
-}
-unique(newNames)
-
-sameNamePlayers[ , c("name", "birth_date")]
-
-#barplot(prop.table(table(players$position)))
-
-#filteredPlayers <- seasonsStats[seasonsStats$Year > 2005 & !is.null(seasonsStats$X3P.),]
-
-
-age <- min(seasonsStats$Age, na.rm=TRUE):max(seasonsStats$Age, na.rm=TRUE)
-values <- rep(0, length(ages))
-for (age in ages) {
-  values[i] <- length(seasonsStats[seasonsStats$Age == age, c("Age")])
-}
-barplot(setNames(values, ages))
-
+Na ljedeća dva grafa prikazana je ovisnost broja pokušaja trica o uspješnosti igrača u tricama. Moguće je uočiti slabu korelaciju između ove dvije varijable. Igrači koji bolje pucaju zbog toga će pucati i češće. Međutim obrambeni igrači na njih više i paze pa zato veza nije očitija.
+```{r}
 plot(seasonsStats$X3P., seasonsStats$X3PA, cex=0.1, xlab="3P%", ylab="3PA")
+cor(seasonsStats$X3P.[!is.na(seasonsStats$X3P.) & !is.na(seasonsStats$X3PA)], seasonsStats$X3PA[!is.na(seasonsStats$X3P.) & !is.na(seasonsStats$X3PA)], method="pearson")
 
 plot(seasonsStats$X3P.[seasonsStats$X3PA > 100], seasonsStats$X3PA[seasonsStats$X3PA > 100], cex=0.1, xlab="3P%", ylab="3PA")
+```
 
-years <- 1979:max(ss$Year, na.rm=TRUE)
-values <- rep(0, length(years))
-for (i in 1:length(years)) {
-  values[i] <- sum(ss$X3PA[ss$Year == years[i] & !is.na(ss$X3PA)])
+Sljedeća dva grafa vezana su uz dobnu strukturu lige NBA. Prvi graf prikazuje dobnu raspodjelu igrača. Sa starenjem igrači sve češće prestaju igrati u ligi NBA jer više ne zadovoljavaju kriterije koji su potrebni da bi igrač mogao igrati u ligi. Ali zato oni koji ostaju u ligi igraju u prosjeku jednako dobro kao i svi ostali. Drugi graf prikazuje omjer zabijenih i promašenih šuteva igrača određene starosti. Taj je prosjek za sve gotovo starosti približno jednak.
+```{r}
+ages <- min(seasonsStats$Age, na.rm=TRUE):max(seasonsStats$Age, na.rm=TRUE)
+values <- rep(0, length(ages))
+avg <- rep(0, length(ages))
+for (i in 1:length(ages)) {
+  age = ages[i]
+  values[i] <- length(seasonsStats$Age[!is.na(seasonsStats$Age) & seasonsStats$Age == age])
+  avg[i] <- sum(seasonsStats$FG[!is.na(seasonsStats$Age) & seasonsStats$Age == age]) / sum(seasonsStats$FGA[!is.na(seasonsStats$Age) & seasonsStats$Age == age])
+}
+values <- values / length(unique(ss$Year))
+barplot(setNames(values, ages))
+barplot(setNames(avg, ages))
+```
+
+
+```{r}
+colleges = unique(players$college)
+colleges = droplevels.factor(colleges, "")
+nHeights = 40
+en = new.env()
+for(i in seq(length(colleges))) {
+  college = as.character(colleges[i])
+  heights = players[as.character(players$college) == college, "height"]
+  heights = heights[!is.na(heights)]
+  if (length(heights) <= nHeights) next
+  
+  en[[as.character(college)]] = heights
 }
 
-lm.r <- lm(values ~ years)
 
-plot(years, values, cex=0.5, xlab="Year", ylab="3PA")
+allHeightValues = numeric()
+collegeValues = character()
+for (v in ls(en)) {
+    a = en[[v]]
+    allHeightValues = c(allHeightValues, a)
+    collegeValues = c(collegeValues, rep(v, c(length(a))))
+}
+
+anovaModel = lm(allHeightValues ~ collegeValues)
+anova(anovaModel)
+```
+
+Nakon uvođenja trice 1979. godine nije odmah bilo jasno koliko je to vrijedan dodatak igri. Ekipe su to s vremenom počele shvaćati (između ostaloga i zbog sve veće primjene statističkih metoda u ligi) i tako se iz godine u godinu puca sve više trica. Ovisnost broja pokušanih trica o godini je gotovo linearna i prikazana je u sljedećem grafu.
+```{r}
+years <- 1979:2019
+threes <- rep(0, length(years))
+for (i in 1:length(years)) {
+  threes[i] <- sum(teams$X3PA[teams$Year == years[i]])
+}
+
+lm.r <- lm(threes ~ years)
+
+plot(years, threes, cex=0.5, xlab="Godina", ylab="3PA", col="blue")
 abline(lm.r, col="red")
-# barplot(setNames(values, years))
 
 qqnorm(rstandard(lm.r))
 qqline(rstandard(lm.r))
+```
 
-#ss[which(ss$FTA == max(ss$FTA[!is.na(ss$FTA)])), c("Player", "Year", "X3PA", "X3P")]
-plot(seasonsStats$FT., seasonsStats$FTA, cex=0.1, xlab="FT%", ylab="FTA")
-#max(seasonsStats$FTA, na.rm=TRUE)
+Postavlja se pitanje jesu li trice stvarno korisne za ishod utakmica. Sljedeći graf prikazuje korelaciju postotka pogođenih trica neke ekipe i broja pobjeda te ekipe kroz godine od uvođenja trice. Iz grafa se vidi da uspješnost u pucanju trica postaje sve važnija za uspjeh ekipe. Pearsonov koeficijent korelacije prikazan je plavom linijom, a Spearmanov crvenom.
+```{r}
+years <- 1979:2019
+correlationsPearson <- rep(0, length(years))
+correlationsSpearman <- rep(0, length(years))
+for (i in 1:length(years)) {
+  yearStats <- teams[teams$Year == years[i], ]
+  correlationsPearson[i] <- cor(yearStats$X3P / yearStats$X3PA, yearStats$W, method="pearson")
+  correlationsSpearman[i] <- cor(yearStats$X3P / yearStats$X3PA, yearStats$W, method="spearman")
+}
+plot(years, correlationsPearson, cex=0.3, col="blue", xlab="godina", ylab="cor")
+lines(years, correlationsPearson, col="blue")
+points(years, correlationsSpearman, cex=0.3, col="red")
+lines(years, correlationsSpearman, col="red")
 
-#threePercentages <- ss[ss$FTA > 50 & ss$X3PA > 50, c("X3P.")]
-#freeThrowPercentages <- ss[ss$FTA > 50 & ss$X3PA > 50, c("FT.")]
-#lm.r <- lm(freeThrowPercentages ~ threePercentages)
-#plot(threePercentages, freeThrowPercentages, cex=0.1, xlab="3P%", ylab="FT%")
-#abline(lm.r, col="red")
+```
 
+Na sljedećem grafu crvena linija prikazuje najveći broj pobjeda u sezoni, plava najmanji broj pobjeda potreban za ulazak u doigravanje, a crna linija prikazuje najmanji broj pobjeda u sezoni općenito. U većini sezona igra se ukupno 82 utakmice, a u 1998./1999. odigrano ih je samo 50, a u 2012. samo 66. Kroz vrijeme se vrijednosti značajno ne mijenjaju.
+1999 ima samo 50 utakmica, a 2012 66.
+```{r}
+years <- 1979:2019
+minPlayoff <- rep(0, length(years))
+maxWins <- rep(0, length(years))
+minWins <- rep(0, length(years))
+for (i in 1:length(years)) {
+  minPlayoff[i] <- min(teams$W[teams$Year == years[i] & teams$PO])
+  maxWins[i] <- max(teams$W[teams$Year == years[i]])
+  minWins[i] <- min(teams$W[teams$Year == years[i]])
+}
+plot(years, minPlayoff, cex=0.3, col="blue", ylim=c(0, 82))
+lines(years, minPlayoff, col="blue")
+points(years, maxWins, cex=0.3, col="red")
+lines(years, maxWins, col="red")
+points(years, minWins, cex=0.3)
+lines(years, minWins)
+grid()
+
+```
+
+Liga NBA podijeljena je na dvije konferencije: istočnu i zapadnu. Često se vode debate o tome koja je konferencija jača i zapadna konferencija u pravilu se smatra jačom. U sljedećem grafu crvenom linijom prikazan je najmanji broj pobjeda potreban za ulazak u doigravanje u zapadnoj konferenciji, a plavom linijom najmanji broj pobjeda potreban za ulazak u doigravanje u istočnoj konferenciji. Može se uočiti da je u zapadnoj konferenciji stvarno u prosjeku potreban veći broj pobjeda za doigravanje. To potvrđuje i provedeni t test, iako njega u ovom slučaju ne treba shvatiti previše ozbiljno budući da varijable nad kojima je test proveden nisu nezavisne.
+```{r}
+isWestern <- function(abbr) {
+  if (length(abbr) == 1) {
+    return(as.character(teamData[as.character(abbr) == as.character(teamData$Abbr), ]$Conf) == "W")
+  }
+  isWesternV <- rep(FALSE, length(abbr))
+  for (i in 1:length(abbr)) {
+    isWesternV[i] <- isWestern(abbr[i])
+  }
+  return(isWesternV)
+}
+tms <- teams[teams$Year >= 1979, ]
+western <- isWestern(tms$Tm)
+tms <- cbind(tms, western)
+years <- 1979:2019
+minPlayoffWest <- rep(0, length(years))
+minPlayoffEast <- rep(0, length(years))
+for (i in 1:length(years)) {
+  minPlayoffWest[i] <- min(tms$W[tms$Year == years[i] & tms$western & tms$PO])
+  minPlayoffEast[i] <- min(tms$W[tms$Year == years[i] & !tms$western & tms$PO])
+}
+plot(years, minPlayoffWest, cex=0.3, col="red")
+grid()
+lines(years, minPlayoffWest, col="red")
+points(years, minPlayoffEast, cex=0.3, col="blue")
+lines(years, minPlayoffEast, col="blue")
+
+t.test(minPlayoffEast, minPlayoffWest, alternative="less")
+```
+
+Sljedeći graf prikazuje razliku potrebnih pobjeda za doigravanje između zapadne i istočne konferencije. Ako je više pobjeda bilo potrebno na zapadu, vrijednosti su pozitivne (crvene točke), a ako je na istoku bilo lakše izboriti doigravanje vrijednsoti su negativne (plave točke). Ovdje je još jače izraženo da je zapadna konferencija stvarno teža, odnosno jača.
+```{r}
+diff <- minPlayoffWest - minPlayoffEast
+plot(years, diff, cex=0.3, xlab="Godina", ylab="Razlika")
+lines(c(0, 10000), c(0, 0), lty="43")
+lines(years, diff)
+for(i in 1:length(diff)) {
+  current <- diff[i]
+  if (current > 0)  {
+    points(years[i], diff[i], cex=0.4, col="red")
+    points(years[i], diff[i], cex=0.2, col="red")
+  } else if (current < 0) {
+    points(years[i], diff[i], cex=0.2, col="blue")
+    points(years[i], diff[i], cex=0.4, col="blue")
+  }
+}
+```
+
+Sljedeći graf prikazuje ukupni broj pobjeda ekipa zapadne (crvena linija), odnosno istočne (plava linija) konferencije kroz godine. Ekipe sa zapada uglavnom imaju više pobjeda.
+```{r}
+winsWest <- rep(0, length(years))
+winsEast <- rep(0, length(years))
+for (i in 1:length(years)) {
+  winsEast[i] <- sum(tms$W[tms$Year == years[i] & !tms$western])
+  winsWest[i] <- sum(tms$W[tms$Year == years[i] & tms$western])
+}
+
+plot(years, winsWest, cex=0.3, col="red")
+grid()
+lines(years, winsWest, col="red")
+points(years, winsEast, cex=0.3, col="blue")
+lines(years, winsEast, col="blue")
+```
+
+Na sljedećem grafu prikazana je razlika ukupnog broja pobjeda ekipa sa zapadne i istočne konferencije. Crvene točke označavaju veći broj pobjeda zapada, a plave veći broj pobjeda istoka. Istok je bio bolji samo u 10 od 31 sezone (nakon uvođenja trice).
+```{r}
+diff <- winsWest - winsEast
+plot(years, diff, cex=0.3, xlab="Godina", ylab="Razlika")
+lines(c(0, 10000), c(0, 0), lty="43")
+lines(years, diff)
+for(i in 1:length(diff)) {
+  current <- diff[i]
+  if (current > 0)  {
+    points(years[i], diff[i], cex=0.4, col="red")
+    points(years[i], diff[i], cex=0.2, col="red")
+  } else if (current < 0) {
+    points(years[i], diff[i], cex=0.2, col="blue")
+    points(years[i], diff[i], cex=0.4, col="blue")
+  }
+}
+```
+
+Budući da ulazak u doigravanje ne ovisi samo o broju pobjeda pojedine ekipe, već o cjelokupnom stanju lige (broja pobjeda svih ekipa) zanimljivo je vidjeti koliko pobjeda u pravilu ekipa treba ostvariti u sezoni kako bi izborila doigravanje. Sljedeći graf prikazuje ulazak u doigravanje u ovisnosti o broju pobjeda (ulazak u doigravanje na osi y označen je jedinicom, a ne ulazak nulom). Provedena je logistička regresija. Vidi se da je u nekim slučajevima bilo potrebno samo 25 pobjeda za ulazak u doigravanje, dok nekada ni 48 utakmica nije bilo dovoljno (iako je predikcija za 48 pobjeda 0.97, odnosno gotovo siguran ulazak u doigravanje).
+```{r}
+# Broj pobjeda / Ulazak u doigravanje
+ta <- teams[teams$Year >= 1979, ]
+po <- rep(0, length(ta$PO))
+for (i in 1:length(ta$PO)) {
+  if (ta$PO[i]) {
+    po[i] <- 1
+  }
+}
+
+myData <- data.frame(cbind(ta$W, po))
+names(myData) <- c("Wins", "PO")
+logreg <- glm(PO ~ Wins, data=myData, family=binomial())
+xWins <- seq(1, 82, 0.5)
+prediction <- predict(logreg, data.frame(Wins=xWins), type="response")
+plot(ta$W, po, cex=0.2, xlab="Wins", ylab="PO", col="blue")
+lines(xWins, prediction, cex=0.1, col="red")
+
+summary(logreg)
+print("Value for 48 wins:")
+print(predict(logreg, data.frame(Wins=c(48)), type="response")[[1]])
 ```
 
 ```{r}
-merged <- merge(ss, pl, by.x="Player", by.y="name")
-merged <- merged[!(merged$Player %in% sameNamePlayers$name), ]
-merged <- merged[!is.na(merged$height) & !is.na(merged$FT.), ]
-names <- unique(merged$Player)
-heights <- rep(0, length(names))
-threes <- rep(0, length(names))
-for (i in 1:length(names)) {
-  name <- names[i]
-  heights[i] <- min(merged[merged$Player == name, c("height")])
-  threes[i] <- sum(merged[merged$Player == name, c("FT")])
+playerPlayoffs <- read.csv(file="data/player_playoff.csv", header=TRUE, sep=",")
+
+avgBlocksSeason <- playerSeasons$BLK / playerSeasons$G
+avgBlocksPlayoffs <- playerPlayoffs$BLK / playerPlayoffs$G
+
+t.test(avgBlocksSeason, avgBlocksPlayoffs, alt = "two.sided", var.equal = TRUE)
+
+avgFoulsSeason <- playerSeasons$PF / playerSeasons$G
+avgFoulsPlayoffs <- playerPlayoffs$PF / playerPlayoffs$G
+
+t.test(avgFoulsSeason, avgFoulsPlayoffs, alt = "less", var.equal = TRUE)
+
+playerSeasonsTmp <- playerSeasons[!is.na(playerSeasons$FG.) & !is.na(playerSeasons$Age) & playerSeasons$Age > 18 & playerSeasons$Age < 41, ]
+FGP = rep('šut lošiji od 45%', length(playerSeasonsTmp$FG.))
+for (i in 1:length(playerSeasonsTmp$FG.)) {
+  if (playerSeasonsTmp$FG.[i] > 0.45) {
+    FGP[i] <- 'šut bolji od 45%'
+  }
 }
 
-uniqueHeights <- unique(heights)
-uniqueThrees <- rep(0, length(uniqueHeights))
-for (i in 1:length(uniqueHeights)) {
-  height <- heights[i]
-  nPlayers <- length(heights[heights == height])
-  totalThrees <- sum(threes[heights == height])
-  uniqueThrees[i] <- totalThrees / nPlayers
-}
-
-plot(uniqueHeights, uniqueThrees, cex=0.5)
-
+tbl = table(FGP, playerSeasonsTmp$Age)
+tbl
+chisq.test(tbl,correct=F)
 ```
+
 
 
 

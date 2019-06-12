@@ -49,8 +49,6 @@ preparePlayerData <- function(players) {
   return(players)
 }
 
-
-
 removeAsterisk <- function(name) {
   if (length(name) == 1) {
     if (grepl("\\*", name)) {
