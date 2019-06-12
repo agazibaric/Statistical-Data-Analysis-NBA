@@ -3,7 +3,7 @@ title: "Statistika NBA igrača od 1950. godine"
 subtitle: "Preko 3000 igrača kroz 67 sezona i preko 50 varijabli po igraču"
 author: "Ante Gazibarić, Antun Magdić, Ante Žužul"
 date: "21.5.2019."
-output: html_document
+output: pdf_document
 ---
 
 ```{r, echo=FALSE}
@@ -94,7 +94,7 @@ sameNamePlayers[ , c("name", "birth_date")]
 #filteredPlayers <- seasonsStats[seasonsStats$Year > 2005 & !is.null(seasonsStats$X3P.),]
 
 
-age <- min(seasonsStats$Age, na.rm=TRUE):max(seasonsStats$Age, na.rm=TRUE)
+ages <- min(seasonsStats$Age, na.rm=TRUE):max(seasonsStats$Age, na.rm=TRUE)
 values <- rep(0, length(ages))
 for (age in ages) {
   values[i] <- length(seasonsStats[seasonsStats$Age == age, c("Age")])
@@ -156,7 +156,37 @@ for (i in 1:length(uniqueHeights)) {
 
 plot(uniqueHeights, uniqueThrees, cex=0.5)
 
+
+colleges = unique(players$college)
+colleges = droplevels.factor(colleges, "")
+nHeights = 40
+en = new.env()
+for(i in seq(length(colleges))) {
+  college = as.character(colleges[i])
+  heights = players[as.character(players$college) == college, "height"]
+  heights = heights[!is.na(heights)]
+  if (length(heights) <= nHeights) next
+  
+  en[[as.character(college)]] = heights
+}
+
+
+allHeightValues = numeric()
+collegeValues = character()
+for (v in ls(en)) {
+    a = en[[v]]
+    allHeightValues = c(allHeightValues, a)
+    collegeValues = c(collegeValues, rep(v, c(length(a))))
+}
+
+anovaModel = lm(allHeightValues ~ collegeValues)
+anova(anovaModel)
+
 ```
+
+
+
+
 
 
 
