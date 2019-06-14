@@ -84,10 +84,21 @@ for (i in 1:length(names)) {
 
 Na ljedeća dva grafa prikazana je ovisnost broja pokušaja trica o uspješnosti igrača u tricama. Moguće je uočiti slabu korelaciju između ove dvije varijable. Igrači koji bolje pucaju zbog toga će pucati i češće. Međutim obrambeni igrači na njih više i paze pa zato veza nije očitija.
 ```{r}
-plot(seasonsStats$X3P., seasonsStats$X3PA, cex=0.1, xlab="3P%", ylab="3PA")
-cor(seasonsStats$X3P.[!is.na(seasonsStats$X3P.) & !is.na(seasonsStats$X3PA)], seasonsStats$X3PA[!is.na(seasonsStats$X3P.) & !is.na(seasonsStats$X3PA)], method="pearson")
+best <- playerSeasons[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 780, ]
+cor(playerSeasons$X3P.[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA)], playerSeasons$X3PA[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA)], method="spearman")
 
-plot(seasonsStats$X3P.[seasonsStats$X3PA > 100], seasonsStats$X3PA[seasonsStats$X3PA > 100], cex=0.1, xlab="3P%", ylab="3PA")
+plot(playerSeasons$X3P., playerSeasons$X3PA, cex=0.1, xlab="3P%", ylab="3PA")
+for (i in 1: nrow(best)) {
+  current <- best[i, ]
+  text(current$X3P., current$X3PA, labels=paste(current$Player, as.character(current$Season), sep=", "), cex= 0.5, pos=4)
+}
+
+cor(playerSeasons$X3P.[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 100], playerSeasons$X3PA[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 100], method="spearman")
+plot(playerSeasons$X3P.[playerSeasons$X3PA > 100], playerSeasons$X3PA[playerSeasons$X3PA > 100], cex=0.1, xlab="3P%", ylab="3PA")
+for (i in 1: nrow(best)) {
+  current <- best[i, ]
+  text(current$X3P., current$X3PA, labels=paste(current$Player, as.character(current$Season), sep=", "), cex= 0.5, pos=4)
+}
 ```
 
 Sljedeća dva grafa vezana su uz dobnu strukturu lige NBA. Prvi graf prikazuje dobnu raspodjelu igrača. Sa starenjem igrači sve češće prestaju igrati u ligi NBA jer više ne zadovoljavaju kriterije koji su potrebni da bi igrač mogao igrati u ligi. Ali zato oni koji ostaju u ligi igraju u prosjeku jednako dobro kao i svi ostali. Drugi graf prikazuje omjer zabijenih i promašenih šuteva igrača određene starosti. Taj je prosjek za sve gotovo starosti približno jednak.
@@ -101,10 +112,11 @@ for (i in 1:length(ages)) {
   avg[i] <- sum(seasonsStats$FG[!is.na(seasonsStats$Age) & seasonsStats$Age == age]) / sum(seasonsStats$FGA[!is.na(seasonsStats$Age) & seasonsStats$Age == age])
 }
 values <- values / length(unique(ss$Year))
-barplot(setNames(values, ages))
-barplot(setNames(avg, ages))
+barplot(setNames(values, ages), xlab="Starost", ylab="Broj igrača")
+barplot(setNames(avg, ages), xlab="Starost", ylab="FG%")
 ```
 
+Analiza varijance provedena je na uzorku sveučilišta i pripadajućih igrača. Može se zaključiti da postoji razlika u visinama igrača na sveučilištima koje su pohađali.
 
 ```{r}
 colleges = unique(players$college)
@@ -179,7 +191,7 @@ for (i in 1:length(years)) {
   maxWins[i] <- max(teams$W[teams$Year == years[i]])
   minWins[i] <- min(teams$W[teams$Year == years[i]])
 }
-plot(years, minPlayoff, cex=0.3, col="blue", ylim=c(0, 82))
+plot(years, minPlayoff, cex=0.3, col="blue", ylim=c(0, 82), xlab="Godina", ylab="Broj pobjeda")
 lines(years, minPlayoff, col="blue")
 points(years, maxWins, cex=0.3, col="red")
 lines(years, maxWins, col="red")
@@ -211,7 +223,7 @@ for (i in 1:length(years)) {
   minPlayoffWest[i] <- min(tms$W[tms$Year == years[i] & tms$western & tms$PO])
   minPlayoffEast[i] <- min(tms$W[tms$Year == years[i] & !tms$western & tms$PO])
 }
-plot(years, minPlayoffWest, cex=0.3, col="red")
+plot(years, minPlayoffWest, cex=0.3, col="red", xlab="Godina", ylab="Broj pobjeda za ulazak u doigravanje")
 grid()
 lines(years, minPlayoffWest, col="red")
 points(years, minPlayoffEast, cex=0.3, col="blue")
@@ -247,7 +259,7 @@ for (i in 1:length(years)) {
   winsWest[i] <- sum(tms$W[tms$Year == years[i] & tms$western])
 }
 
-plot(years, winsWest, cex=0.3, col="red")
+plot(years, winsWest, cex=0.3, col="red", xlab="Godina", ylab="Ukupni broj pobjeda konferencije")
 grid()
 lines(years, winsWest, col="red")
 points(years, winsEast, cex=0.3, col="blue")
@@ -272,10 +284,10 @@ for(i in 1:length(diff)) {
 }
 ```
 
-Budući da ulazak u doigravanje ne ovisi samo o broju pobjeda pojedine ekipe, već o cjelokupnom stanju lige (broja pobjeda svih ekipa) zanimljivo je vidjeti koliko pobjeda u pravilu ekipa treba ostvariti u sezoni kako bi izborila doigravanje. Sljedeći graf prikazuje ulazak u doigravanje u ovisnosti o broju pobjeda (ulazak u doigravanje na osi y označen je jedinicom, a ne ulazak nulom). Provedena je logistička regresija. Vidi se da je u nekim slučajevima bilo potrebno samo 25 pobjeda za ulazak u doigravanje, dok nekada ni 48 utakmica nije bilo dovoljno (iako je predikcija za 48 pobjeda 0.97, odnosno gotovo siguran ulazak u doigravanje).
+Budući da ulazak u doigravanje ne ovisi samo o broju pobjeda pojedine ekipe, već o cjelokupnom stanju lige (broja pobjeda svih ekipa) zanimljivo je vidjeti koliko pobjeda u pravilu ekipa treba ostvariti u sezoni kako bi izborila doigravanje. Sljedeći graf prikazuje ulazak u doigravanje u ovisnosti o broju pobjeda (ulazak u doigravanje na osi y označen je jedinicom, a ne ulazak nulom). Provedena je logistička regresija. Vidi se da je u nekim slučajevima bilo potrebno samo 30 pobjeda za ulazak u doigravanje, dok nekada ni 48 utakmica nije bilo dovoljno (iako je predikcija za 48 pobjeda 0.97, odnosno gotovo siguran ulazak u doigravanje).
 ```{r}
 # Broj pobjeda / Ulazak u doigravanje
-ta <- teams[teams$Year >= 1979, ]
+ta <- teams[teams$Year >= 1979 & teams$Year != 1999 & teams$Year != 2012, ]
 po <- rep(0, length(ta$PO))
 for (i in 1:length(ta$PO)) {
   if (ta$PO[i]) {
@@ -288,7 +300,12 @@ names(myData) <- c("Wins", "PO")
 logreg <- glm(PO ~ Wins, data=myData, family=binomial())
 xWins <- seq(1, 82, 0.5)
 prediction <- predict(logreg, data.frame(Wins=xWins), type="response")
-plot(ta$W, po, cex=0.2, xlab="Wins", ylab="PO", col="blue")
+plot(ta$W, po, cex=0.2, col="blue", xlab="Broj pobjeda", ylab="Ulazak u doigravanje", ylim=c(0, 1.05))
+grid()
+points(ta$W, po, cex=0.2, xlab="Wins", ylab="PO", col="blue")
+text(c(73), c(1.0), labels=c("GSW '16"), cex= 0.5, pos=1)
+text(c(72), c(1.0), labels=c("CHI '96"), cex= 0.5, pos=3)
+text(c(48), c(0), labels=c("GSW '08, PHO '14"), cex= 0.5, pos=3)
 lines(xWins, prediction, cex=0.1, col="red")
 
 summary(logreg)
@@ -296,20 +313,10 @@ print("Value for 48 wins:")
 print(predict(logreg, data.frame(Wins=c(48)), type="response")[[1]])
 ```
 
+Intuitivnim razmišljanjem moglo bi se pretpostaviti kako iskusniji igrači (stariji igrači) imaju bolji postotak šutiranja, tj. da su te dvije kategorije zavisne. Međutim, nakon provođenja testa nezavisnosti na kategorijskim podacima ne možemo odbaciti hipotezu da su nezavisni. Test je proveden na uzorku iz četiri različite godine u razmaku od 20 godina kako bi bila osigurana veća neovisnost podataka iz uzorka.
+
 ```{r}
-playerPlayoffs <- read.csv(file="data/player_playoff.csv", header=TRUE, sep=",")
-
-avgBlocksSeason <- playerSeasons$BLK / playerSeasons$G
-avgBlocksPlayoffs <- playerPlayoffs$BLK / playerPlayoffs$G
-
-t.test(avgBlocksSeason, avgBlocksPlayoffs, alt = "two.sided", var.equal = TRUE)
-
-avgFoulsSeason <- playerSeasons$PF / playerSeasons$G
-avgFoulsPlayoffs <- playerPlayoffs$PF / playerPlayoffs$G
-
-t.test(avgFoulsSeason, avgFoulsPlayoffs, alt = "less", var.equal = TRUE)
-
-playerSeasonsTmp <- playerSeasons[!is.na(playerSeasons$FG.) & !is.na(playerSeasons$Age) & playerSeasons$Age > 18 & playerSeasons$Age < 41, ]
+playerSeasonsTmp <- playerSeasons[!is.na(playerSeasons$FG.) & !is.na(playerSeasons$Age) & playerSeasons$Age > 19 & playerSeasons$Age < 35 & (playerSeasons$Season == 1960 | playerSeasons$Season == 1980 | playerSeasons$Season == 2000 | playerSeasons$Season == 2019), ]
 FGP = rep('šut lošiji od 45%', length(playerSeasonsTmp$FG.))
 for (i in 1:length(playerSeasonsTmp$FG.)) {
   if (playerSeasonsTmp$FG.[i] > 0.45) {
@@ -321,6 +328,25 @@ tbl = table(FGP, playerSeasonsTmp$Age)
 tbl
 chisq.test(tbl,correct=F)
 ```
+
+```{r}
+names = unique(playerSeasons$Player[!(playerSeasons$Player %in% sameNamePlayers$name) & playerSeasons$Player %in% players$name])
+heights <- rep(0, length(names))
+trps <- rep(0, length(names))
+
+ps <- playerSeasons[!is.na(playerSeasons$X3P) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 50, ]
+
+for (i in 1:length(names)) {
+  heights[i] <- players$height[as.character(players$name) == names[i]]
+  trps[i] <- sum(ps$X3P[ps$Player == names[i]]) / sum(ps$X3PA[ps$Player == names[i]])
+}
+heights <- heights[!is.na(trps)]
+trps <- trps[!is.na(trps)]
+plot(heights, trps, cex=0.2)
+
+cor(heights, trps, method="pearson")
+```
+
 
 
 
