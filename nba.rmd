@@ -333,18 +333,24 @@ chisq.test(tbl,correct=F)
 names = unique(playerSeasons$Player[!(playerSeasons$Player %in% sameNamePlayers$name) & playerSeasons$Player %in% players$name])
 heights <- rep(0, length(names))
 trps <- rep(0, length(names))
+ft <- rep(0, length(names))
 
-ps <- playerSeasons[!is.na(playerSeasons$X3P) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 50, ]
+ps <- playerSeasons[!is.na(playerSeasons$X3P) & !is.na(playerSeasons$X3PA) & !is.na(playerSeasons$FTA) & !is.na(playerSeasons$FT) & playerSeasons$X3PA > 50, ]
 
 for (i in 1:length(names)) {
   heights[i] <- players$height[as.character(players$name) == names[i]]
   trps[i] <- sum(ps$X3P[ps$Player == names[i]]) / sum(ps$X3PA[ps$Player == names[i]])
+  ft[i] <- sum(ps$FT[ps$Player == names[i]]) / sum(ps$FTA[ps$Player == names[i]])
 }
-heights <- heights[!is.na(trps)]
+heights1 <- heights[!is.na(trps)]
 trps <- trps[!is.na(trps)]
-plot(heights, trps, cex=0.2)
+plot(heights1, trps, cex=0.2, xlab="Visina", ylab="3P%")
+cor(heights1, trps, method="pearson")
 
-cor(heights, trps, method="pearson")
+heights2 <- heights[!is.na(ft)]
+ft <- ft[!is.na(ft)]
+plot(heights2, ft, cex=0.2, xlab="Visina", ylab="FT%")
+cor(heights2, ft, method="pearson")
 ```
 
 
