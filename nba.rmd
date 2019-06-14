@@ -88,6 +88,7 @@ best <- playerSeasons[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA) & 
 cor(playerSeasons$X3P.[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA)], playerSeasons$X3PA[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA)], method="spearman")
 
 plot(playerSeasons$X3P., playerSeasons$X3PA, cex=0.1, xlab="3P%", ylab="3PA")
+grid()
 for (i in 1: nrow(best)) {
   current <- best[i, ]
   text(current$X3P., current$X3PA, labels=paste(current$Player, as.character(current$Season), sep=", "), cex= 0.5, pos=4)
@@ -95,6 +96,7 @@ for (i in 1: nrow(best)) {
 
 cor(playerSeasons$X3P.[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 100], playerSeasons$X3PA[!is.na(playerSeasons$X3P.) & !is.na(playerSeasons$X3PA) & playerSeasons$X3PA > 100], method="spearman")
 plot(playerSeasons$X3P.[playerSeasons$X3PA > 100], playerSeasons$X3PA[playerSeasons$X3PA > 100], cex=0.1, xlab="3P%", ylab="3PA")
+grid()
 for (i in 1: nrow(best)) {
   current <- best[i, ]
   text(current$X3P., current$X3PA, labels=paste(current$Player, as.character(current$Season), sep=", "), cex= 0.5, pos=4)
@@ -173,6 +175,8 @@ for (i in 1:length(years)) {
   correlationsSpearman[i] <- cor(yearStats$X3P / yearStats$X3PA, yearStats$W, method="spearman")
 }
 plot(years, correlationsPearson, cex=0.3, col="blue", xlab="godina", ylab="cor")
+grid()
+points(years, correlationsPearson, cex=0.3, col="blue")
 lines(years, correlationsPearson, col="blue")
 points(years, correlationsSpearman, cex=0.3, col="red")
 lines(years, correlationsSpearman, col="red")
@@ -236,6 +240,8 @@ Sljedeći graf prikazuje razliku potrebnih pobjeda za doigravanje između zapadn
 ```{r}
 diff <- minPlayoffWest - minPlayoffEast
 plot(years, diff, cex=0.3, xlab="Godina", ylab="Razlika")
+grid()
+points(years, diff, cex=0.3)
 lines(c(0, 10000), c(0, 0), lty="43")
 lines(years, diff)
 for(i in 1:length(diff)) {
@@ -270,6 +276,8 @@ Na sljedećem grafu prikazana je razlika ukupnog broja pobjeda ekipa sa zapadne 
 ```{r}
 diff <- winsWest - winsEast
 plot(years, diff, cex=0.3, xlab="Godina", ylab="Razlika")
+grid()
+points(years, diff, cex=0.3)
 lines(c(0, 10000), c(0, 0), lty="43")
 lines(years, diff)
 for(i in 1:length(diff)) {
@@ -351,6 +359,16 @@ heights2 <- heights[!is.na(ft)]
 ft <- ft[!is.na(ft)]
 plot(heights2, ft, cex=0.2, xlab="Visina", ylab="FT%")
 cor(heights2, ft, method="pearson")
+
+meanHeight <- mean(heights2)
+print("Mean height: ")
+print(meanHeight)
+shortH <- heights2[heights2 < meanHeight]
+tallH <- heights2[heights2 > meanHeight]
+shortFt <- ft[heights2 < meanHeight]
+tallFt <- ft[heights2 > meanHeight]
+
+t.test(shortFt, tallFt, alt = "greater", var.equal = TRUE)
 ```
 
 
